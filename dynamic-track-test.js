@@ -11,6 +11,10 @@ let p10 = new Point(-6, -4);
 let p11 = new Point(-5, 6);
 let p12 = new Point(-7, -7);
 let p13 = new Point(-3, -7);
+let p14 = new Point(2, 2);
+let p15 = new Point(0, 0);
+let p16 = new Point(1, 4);
+let p17 = new Point(5, 1);
 
 
 (function testPoint(){
@@ -40,6 +44,7 @@ let p13 = new Point(-3, -7);
   (function testIsEnclosed(){
     console.assert(p5.isEnclosed(p11, p9, p4));
     console.assert(p2.isEnclosed(p11, p10, p4));
+    console.assert(p14.isEnclosed(p15, p16, p17));    
     console.assert(!p8.isEnclosed(p11, p10, p4));
   })();
 
@@ -148,7 +153,7 @@ let o4 = new Loop([k1, k6, k7, k8, k9, k10, k11, k12]);
   (function testGetSvg(){
     console.assert(
       o1.getSvg('p1') ==
-      '<path id="p1" d="M 8 10 L 3 -1 L -1 -5 L -6 -4 L -5 6 "/>',
+      '<path id="p1" d="M 8 10 L 3 -1 L -1 -5 L -6 -4 L -5 6 z"/>',
       `SVG ${o1.getSvg()}`);
   })();
 })();

@@ -1,1 +1,11 @@
+svg.loop {
+  stroke: black;
+  stroke-width: 5px;
+  fill: transparent;
+}
 
+svg.racetrack {
+  stroke: black;
+  stroke-width: 5px;
+  fill: transparent;
+}
