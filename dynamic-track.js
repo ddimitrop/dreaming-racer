@@ -3,11 +3,13 @@ function initDynamicLoop() {
   let component = Loop.makeDynamic(
     space /* space */,
     space * 0.4 /* spaceToUse */,
-    10 /* lines */,
-    0.3 /* initLinesPc */,
-    space / 10 /* initLinesVar */,
-    0.5 /* dynamicLinesPc */,
-    space / 20 /* dynamicLinesVar */,
+    10 /* vectors */,
+    0.3 /* initVectorsPc */,
+    space / 10 /* initVectorsVar */,
+    0.5 /* dynamicVectorsPc */,
+    space / 20 /* dynamicVectorsVar */,
+    0.2 /* maxAngleVariation */,
+    space/10 /* minCornerDistance */,
     10 /* historyTrack */);
 }
 
@@ -16,11 +18,13 @@ function initDynamicRaceTrack() {
   let component = RaceTrack.makeDynamic(
     space /* space */,
     space * 0.4 /* spaceToUse */,
-    /*4, //*/10 /* lines */,
-    /*0, //*/0.3 /* initLinesPc */,
-    /*0, //*/space / 10 /* initLinesVar */,
-    0.5 /* dynamicLinesPc */,
-    space / 20 /* dynamicLinesVar */,
+    10 /* vectors */,
+    0.3 /* initVectorsPc */,
+    space / 10 /* initVectorsVar */,
+    0.5 /* dynamicVectorsPc */,
+    space / 20 /* dynamicVectorsVar */,
+    0.2 /* maxAngleVariation */,
+    space/10 /* minCornerDistance */,
     10 /* historyTrack */);
 }
 
@@ -133,9 +137,9 @@ class Point {
 }
 
 /**
- * A line defined by a starting point, and an ending point
+ * A vector defined by a starting point, and an ending point
  */
-class Line {
+class Vector {
   #start = null;
   #distance = null;
   #angle = null;
@@ -160,6 +164,32 @@ class Line {
 
   get angle() {
     return this.#angle;
+  }
+
+  /**
+   * Returns the points of the line segment that corresponds to the vector.
+   * This is 'start' and 'end' but ordered by snallest 'x'.
+   */
+  getOrderedPoints() {
+    if(this.start.x <= this.end.x) {
+      return [this.start, this.end];
+    } else {
+      return [this.end, this.start];
+    }
+  }
+
+  /** The slope a of equation y = a * x + b that passes from the 2 points */
+  get slope() {
+    let [p1, p2] = this.getOrderedPoints();
+    let dx = p2.x - p1.x;
+    let dy = p2.y - p1.y;
+    return dy / dx;
+  }
+
+  /** The offset b of equation y = a * x + b that passes from the 2 points */
+  get offset() {
+    if (this.slope == Infinity) return this.start.y;
+    return this.start.y - this.slope * this.start.x;
   }
 
   setStart(start) {
@@ -209,9 +239,9 @@ class Line {
     return this.start.equal(another.start) && this.end.equal(another.end);
   }
 
-  /** Returns the reverse line where start is end and vice versa */
+  /** Returns the reverse vector where start is end and vice versa */
   reverse() {
-    return new Line(this.end, this.start);
+    return new Vector(this.end, this.start);
   }
 
   getSvg(id) {
@@ -221,12 +251,12 @@ class Line {
   }
 
   /**
-   * If another line intersects with this.
+   * If another vector intersects with this.
    */
   intersects(another) {
     if (another == this) return false;
     if (another.angle == this.angle) return false; // Parallel
-    // Find a1 and b1 for first line (this) where y = a1 * x + b1
+    // Find a1 and b1 for first vector (this) where y = a1 * x + b1
     // That is:
     // start.y = a1 * start.x + b1 and
     // end.y = a1 * end.x + b1
@@ -246,66 +276,105 @@ class Line {
     let yi = a1 * xi + b1;
     // Now the intersection point should be within range of start and end.
     return ((this.start.x <= xi && xi <= this.end.x) ||
-            (this.end.x <= xi && xi <= this.start.x)) && // For this line
+            (this.end.x <= xi && xi <= this.start.x)) && // For this vector
            ((another.start.x <= xi && xi <= another.end.x) ||
-            (another.end.x <= xi && xi <= another.start.x)); // and the other line.
+            (another.end.x <= xi && xi <= another.start.x)); // and the other vector.
 
+  }
+
+  /** Returns the point on the line of vector that is closest to 'point' */
+  getLineClosest(point) {
+    // Vector is horizontal
+    if (this.slope == 0) {
+      return new Point(point.x, this.start.y);
+    // Vector is vertical
+    } else if (this.slope == Infinity) {
+      return new Point(this.start.x, point.y);
+    }
+    // The slope of lines that are orthogonal to the line of the vector.
+    let oSlope = -1 / this.slope;
+    // The offset of the orthogonal line that passes from point;
+    let oOffset = point.y - oSlope * point.x;
+    // Now we need the intersection point of the vectors line and the orthogonal.
+    // iy = slope * ix + offset  and
+    // iy = oSlope * ix + oOffset     =>
+    // ix (slope - oslope)  + offset - oOffset = 0   =>
+    let ix = (oOffset - this.offset) / (this.slope - oSlope);
+    let iy = this.slope * ix + this.offset;
+    return new Point(ix, iy);
+  }
+
+  /** Returns the point of the vector that is closest to 'point' */
+  getClosest(point) {
+    let lineClosest = this.getLineClosest(point);
+    let [p1, p2] = this.getOrderedPoints();
+    if (lineClosest.x < p1.x) {
+      return p1;
+    } else if (lineClosest.x > p2.x) {
+      return p2;
+    }
+    return lineClosest;
+  }
+
+  /** Returns the min distance of point to any point of the vector */
+  getDistanceFrom(point) {
+    return point.distance(this.getClosest(point));
   }
 
   static makeRandom(spaceX, spaceY) {
     let randomStart = Point.makeRandom(spaceX, spaceY);
     let randomEnd = Point.makeRandom(spaceX, spaceY);
-    return new Line(randomStart, randomEnd);
+    return new Vector(randomStart, randomEnd);
   }
 }
 
 /**
- * A loop is a list of lines each connected to its next (the end of previous is
+ * A loop is a list of vectors each connected to its next (the end of previous is
  * start of the next) and end of last is the start of the first).
- * Also none of the lines can ever intersect.
- * The order of lines should be such so that most of the angles that are formed
+ * Also none of the vectors can ever intersect.
+ * The order of vectors should be such so that most of the angles that are formed
  * are not reflex i.e. < PI (clockwise).
- * Otherwise the order of lines in the array gets reversed.
+ * Otherwise the order of vectors in the array gets reversed.
  */
 class Loop {
-  #lines = null;
+  #vectors = null;
   reportErrors = true;
 
-  constructor(lines) {
-    this.#lines = lines;
+  constructor(vectors) {
+    this.#vectors = vectors;
     if (!this.isValid()) {
       if (this.reportErrors)
-        console.assert(false, `Lines of loop are not valid`);
-      throw `Lines of loop are not valid`;
+        console.assert(false, `Vectors of loop are not valid`);
+      throw `Vectors of loop are not valid`;
     }
-    if(this.nonReflexIndexes().length < this.#lines.length / 2) {
-      this.#lines = this.#lines.reverse();
-      for (let i=0; i < this.#lines.length; i++) {
-        this.#lines[i] = this.#lines[i].reverse();
+    if(this.nonReflexIndexes().length < this.#vectors.length / 2) {
+      this.#vectors = this.#vectors.reverse();
+      for (let i=0; i < this.#vectors.length; i++) {
+        this.#vectors[i] = this.#vectors[i].reverse();
       }
     }
   }
 
-  get lines() {
-    return this.#lines;
+  get vectors() {
+    return this.#vectors;
   }
 
-  /** Returns the lines at position i (prev, current, next) */
-  linesAt(i) {
-    let line = this.#lines[i];
-    let numLines = this.#lines.length;
-    let next = i != numLines - 1 ? this.#lines[i+1]: this.#lines[0];
-    let prev = i != 0 ? this.#lines[i-1]: this.#lines[numLines - 1];
-    return [prev, line, next];
+  /** Returns the vectors at position i (prev, current, next) */
+  vectorsAt(i) {
+    let vector = this.#vectors[i];
+    let numVectors = this.#vectors.length;
+    let next = i != numVectors - 1 ? this.#vectors[i+1]: this.#vectors[0];
+    let prev = i != 0 ? this.#vectors[i-1]: this.#vectors[numVectors - 1];
+    return [prev, vector, next];
   }
 
   /** Returns the points that define angle i : i.start, i.end, i+1.end */
   pointsAt(i) {
-    let [prev, line, next] = this.linesAt(i);
-    return [line.start, line.end, next.end];
+    let [prev, vector, next] = this.vectorsAt(i);
+    return [vector.start, vector.end, next.end];
   }
 
-  /** Returns the angle defined by the end of the ith line */
+  /** Returns the angle defined by the end of the ith vector */
   angleAt(i) {
     let [prev, point, next] = this.pointsAt(i);
     return point.angleBetween(prev, next);
@@ -319,7 +388,7 @@ class Loop {
 
   /** Returns if the polygon is convex */
   isConvex() {
-    for (let i=0; i < this.#lines.length; i++) {
+    for (let i=0; i < this.#vectors.length; i++) {
       if (!this.isNonReflex(i)) {
         let [prev, point, next] = this.pointsAt(i);
         let angle = point.angleBetween(prev, next);
@@ -331,7 +400,7 @@ class Loop {
 
   /** Returns if the polygon has all angles > angle */
   allAnglesGreater(angle) {
-    for (let i=0; i < this.#lines.length; i++) {
+    for (let i=0; i < this.#vectors.length; i++) {
       if (this.angleAt(i) < angle) {
         return false;
       }
@@ -341,7 +410,7 @@ class Loop {
 
   /** Returns if the polygon has all angles < angle */
   allAnglesLess(angle) {
-    for (let i=0; i < this.#lines.length; i++) {
+    for (let i=0; i < this.#vectors.length; i++) {
       if (this.angleAt(i) > angle) {
         return false;
       }
@@ -349,14 +418,19 @@ class Loop {
     return true;
   }
 
+  /* Returns the circular index in the vectors array */
+  circular(i) {
+    return (i + this.#vectors.length) % this.#vectors.length;
+  }
+
   /** Returns the minimum distance between any 2 points */
   minDistance() {
     let minDistance = Infinity;
-    for (let k=0; k < this.#lines.length; k++) {
-      let startPoint = this.#lines[k].start;
-      for (let i=0; i < this.#lines.length - 1; i++) {
-        let n = (i + k) % this.#lines.length;
-        let dist = startPoint.distance(this.#lines[n].end);
+    for (let k=0; k < this.#vectors.length; k++) {
+      let startPoint = this.#vectors[k].start;
+      for (let i=0; i < this.#vectors.length - 1; i++) {
+        let n = this.circular(i + k);
+        let dist = startPoint.distance(this.#vectors[n].end);
         if (dist < minDistance) {
           minDistance = dist;
         }
@@ -368,7 +442,7 @@ class Loop {
   /** Returns the number of non-reflex angles in range 0 .. PI */
   nonReflexIndexes() {
     let numNonReflex = [];
-    for (let i=0; i < this.#lines.length; i++) {
+    for (let i=0; i < this.#vectors.length; i++) {
       if (this.isNonReflex(i)) {
         numNonReflex.push(i);
       }
@@ -377,20 +451,20 @@ class Loop {
   }
 
   isValid() {
-    for (let i=0; i < this.#lines.length; i++) {
-      let [prev, line, next] = this.linesAt(i);
+    for (let i=0; i < this.#vectors.length; i++) {
+      let [prev, vector, next] = this.vectorsAt(i);
 
-      if(!line.end.equal(next.start)) {
+      if(!vector.end.equal(next.start)) {
         if (this.reportErrors)
-          console.assert(false, `Line ${i} not connected`);
+          console.assert(false, `Vector ${i} not connected`);
         return false;
       }
-      for (let j=0; j < this.#lines.length; j++) {
-        let another = this.#lines[j];
-        if (another == line || another == next || another == prev) continue;
-        if(line.intersects(another)) {
+      for (let j=0; j < this.#vectors.length; j++) {
+        let another = this.#vectors[j];
+        if (another == vector || another == next || another == prev) continue;
+        if(vector.intersects(another)) {
           if (this.reportErrors)
-            console.assert(false, `Line ${i} intersects ${j}`);
+            console.assert(false, `Vector ${i} intersects ${j}`);
           return false;
         }
       }
@@ -401,7 +475,7 @@ class Loop {
   /**
    * Returns if the point is enclosed in the loop. For loops with non-reflex
    * angles this is easy: split the area in trianges by starting from a constant
-   * point and make triangles for each line. The point should be enclosed in one
+   * point and make triangles for each vector. The point should be enclosed in one
    * of them.
    *
    * For the general case (includes reflex angles), filter all reflex angles
@@ -410,13 +484,13 @@ class Loop {
    */
   encloses(point) {
     let nonReflex = this.nonReflexIndexes();
-    let constPoint = this.#lines[nonReflex[0]].end;
+    let constPoint = this.#vectors[nonReflex[0]].end;
     let wasFoundEnclosed = false;
     // Look for been enclosed at the outer shape made of non-reflex angles.
     for (let i = 0 ; i < nonReflex.length; i++) {
-      let line = this.#lines[nonReflex[i]];
-      if (!line.start.equal(constPoint) && !line.end.equal(constPoint)) {
-        if(point.isEnclosed(constPoint, line.start, line.end)) {
+      let vector = this.#vectors[nonReflex[i]];
+      if (!vector.start.equal(constPoint) && !vector.end.equal(constPoint)) {
+        if(point.isEnclosed(constPoint, vector.start, vector.end)) {
           wasFoundEnclosed = true;
           break;
         }
@@ -427,26 +501,26 @@ class Loop {
     // Now ensure that the point is not enclosed in areas defined by smaller
     // loops around reflex angles.
     let lastNonReflex = null;
-    for (let i = this.#lines.length - 1; i >=0; i++) {
+    for (let i = this.#vectors.length - 1; i >=0; i--) {
       if (this.isNonReflex(i)) {
         lastNonReflex = i;
         break;
       }
     }
 
-    for (let i=0; i < this.#lines.length; i++) {
+    for (let i=0; i < this.#vectors.length; i++) {
       if (this.isNonReflex(i)) {
-        // Make smaller loops by the lines arround consecutive reflex angles
+        // Make smaller loops by the vectors arround consecutive reflex angles
         // and ensure that the point is not enclosed inside them.
-        if(lastNonReflex != (i - 1 + this.#lines.length)%this.#lines.length) {
-          let lines = [];
-          for (let j = lastNonReflex + 1;
-               j != (i + 1)% this.#lines.length;
-               j = (j + 1) % this.#lines.length) {
-            lines.push(this.#lines[j]);
+        if(lastNonReflex != this.circular(i - 1)) {
+          let vectors = [];
+          for (let j = this.circular(lastNonReflex + 1);
+               j != this.circular(i + 1);
+               j = this.circular(j + 1)) {
+            vectors.push(this.#vectors[j]);
           }
-          lines.push(new Line(this.#lines[i].end, this.#lines[lastNonReflex].end));
-          let exclusionLoop = new Loop(lines);
+          vectors.push(new Vector(this.#vectors[i].end, this.#vectors[lastNonReflex].end));
+          let exclusionLoop = new Loop(vectors);
           if (exclusionLoop.encloses(point)) {
             return false;
           }
@@ -459,8 +533,8 @@ class Loop {
 
   /** Returns if all points of the loop are enclosed by the other loop */
   enclosedIn(otherLoop) {
-    for (let i = 0; i < this.#lines.length; i++) {
-      let point = this.#lines[i].end;
+    for (let i = 0; i < this.#vectors.length; i++) {
+      let point = this.#vectors[i].end;
       if (!otherLoop.encloses(point)) {
         if (this.reportErrors)
           console.assert(false, `Point ${i} ${point} not enclosed in other loop`);
@@ -470,12 +544,51 @@ class Loop {
     return true;
   }
 
+  /** Returns the vector closest to 'point' and the distance from it */
+  getClosest(point) {
+    let minDistance = Infinity;
+    let minVector = null;
+    let mi = null;
+    for (let i = 0; i < this.#vectors.length; i++) {
+      let vector = this.#vectors[i];
+      let distanceFrom = vector.getDistanceFrom(point);
+      if (distanceFrom < minDistance) {
+        minDistance = distanceFrom;
+        minVector = vector;
+        mi = i;
+      }
+    }
+    return [minVector, minDistance, mi];
+  }
+
+  /** Return the min distance between 2 loops and the vectors involved */
+  getClosestFromLoop(otherLoop) {
+    let minDistance = Infinity;
+    let minVector = null;
+    let mi = null;
+    let otherVector = null;
+    let otherI = 0;
+    for (let i = 0; i < this.#vectors.length; i++) {
+      let vector = this.#vectors[i];
+      let point = vector.end;
+      let [oVector, oDistance, oi] = otherLoop.getClosest(point);
+      if (oDistance < minDistance) {
+        minDistance = oDistance;
+        minVector = vector;
+        mi = i;
+        otherVector = oVector;
+        otherI = oi;
+      }
+    }
+    return [minDistance, minVector, otherVector, mi, otherI];
+  }
+
   getSvg(id) {
     let start = this.start;
     let end = this.end;
     let d = "";
     let cd = "";
-    for (let i=0; i < this.#lines.length; i++) {
+    for (let i=0; i < this.#vectors.length; i++) {
       let [,p,] = this.pointsAt(i);
       if (i == 0) {
         d = `M ${p.x} ${p.y} `;
@@ -490,56 +603,58 @@ class Loop {
   /**
    * Will generate a random loop in the square space of size space x space.
    * The var parameters is the percentage (0..1) or randomness that we want
-   * on number of lines, and coordinates.
+   * on number of vectors, and coordinates.
    * Validation is a check on points to ensure that they adhere to required rules.
    */
-  static makeRandom(space, spaceToUse, lines, linesVar, posVar, validation) {
-    lines = Math.round(lines * (1 - linesVar) + Math.random() * lines * linesVar);
+  static makeRandom(space, spaceToUse, vectors, vectorsVar, posVar,
+                    maxAngleVariation, minCornerDistance, validation) {
+    vectors = Math.round(vectors * (1 - vectorsVar) + Math.random() * vectors * vectorsVar);
     let initValidation = validation;
     if (validation == undefined) validation = Loop.isInSpace(space);
-    // Start by making a polygon of "lines" lines
-    let angleInc = 2 * Math.PI / lines;
+    // Start by making a polygon of "vectors" vectors
+    let angleInc = 2 * Math.PI / vectors;
     let angle = 0;
-    // Get lines from the center to the perimeter of the circle
+    // Get vectors from the center to the perimeter of the circle
     // that covers 80% of the space to make a symmetric polygon.
     // Start fom the horizontal axis
-    let nextD = new Line(new Point(0, 0), new Point(0, 0));
+    let nextD = new Vector(new Point(0, 0), new Point(0, 0));
     nextD.setDistance(spaceToUse);
     nextD.setAngle(angle);
     let initP = nextD.end.round();
     let nextP = initP;
-    let allLines = [];
-    for (let i = 0; i < lines -1 ; i++) {
+    let allVectors = [];
+    for (let i = 0; i < vectors -1 ; i++) {
       angle += angleInc;
       nextD.setAngle(angle);
       let upcomingNextD = nextD.end.round();
-      let nextL = new Line(nextP, upcomingNextD);
-      allLines.push(nextL);
+      let nextL = new Vector(nextP, upcomingNextD);
+      allVectors.push(nextL);
       nextP = upcomingNextD;
     }
-    allLines.push(new Line(nextP, initP));
-    let loop = new Loop(allLines);
-    loop.addRandomness(1, posVar, space, initValidation);
+    allVectors.push(new Vector(nextP, initP));
+    let loop = new Loop(allVectors);
+    loop.addRandomness(1, posVar, space,  maxAngleVariation, minCornerDistance,
+                       initValidation);
     return loop;
   }
 
-  /** Add some randomness according to params to linesVar percentage of lines */
-  addRandomness(linesVar, posVar, space, validation) {
-    if(!validation) validation = Loop.inSpaceNonFlat(space / 2, this);
+  /** Add some randomness according to params to vectorsVar percentage of vectors */
+  addRandomness(vectorsVar, posVar, space,  maxAngleVariation, minCornerDistance, validation) {
+    if(!validation) validation = Loop.inSpaceNonFlat(space, this, maxAngleVariation, minCornerDistance);
 
     this.reportErrors = false;
-    for (let i = 0; i < this.#lines.length ; i++) {
-      if (Math.random() > linesVar) continue;
-      let line = this.#lines[i];
-      let next = this.#lines[(i+1) % this.#lines.length];
-      Loop.addRandomnessInLine(line, next, posVar, validation);
+    for (let i = 0; i < this.#vectors.length ; i++) {
+      if (Math.random() > vectorsVar) continue;
+      let vector = this.#vectors[i];
+      let next = this.#vectors[this.circular(i+1)];
+      Loop.addRandomnessInVector(vector, next, posVar, validation);
     }
     this.reportErrors = true;
   }
 
-  /** Add some randomness according to params to the end of line */
-  static addRandomnessInLine(line, next, posVar, validation) {
-    let prevEnd = line.end;
+  /** Add some randomness according to params to the end of vector */
+  static addRandomnessInVector(vector, next, posVar, validation) {
+    let prevEnd = vector.end;
     // Keep retrying until the variation keep things valid.
     let minDiff = posVar * 0.3;
     let tries = 0;
@@ -551,14 +666,14 @@ class Loop {
       let dist = prevEnd.distance(newEnd);
       // Ensure that there is enough change and we don't stabilize.
       let enoughVariation = dist > minDiff;
-      line.setEnd(newEnd);
-      next.setStart(line.end);
-      let isValid = validation(line.end);
+      vector.setEnd(newEnd);
+      next.setStart(vector.end);
+      let isValid = validation(vector.end);
       if (isValid && enoughVariation) {
          return true;
       } else {
-        line.setEnd(prevEnd);
-        next.setStart(line.end);
+        vector.setEnd(prevEnd);
+        next.setStart(vector.end);
       }
     }
     return false;
@@ -573,13 +688,15 @@ class Loop {
    * Ensures that the loop has good shape. No angle is too small and the polygon
    * area is not too small (all points are quite far from each other).
    */
-  static hasGoodShape(space, loop, angle, minDistAllowed) {
+  static hasGoodShape(space, loop, maxAngleVariation, minDistAllowed) {
     let isInSpaceFunc = Loop.isInSpace(space, loop);
+    let idealAngle = Math.PI * (loop.#vectors.length - 2) / loop.#vectors.length;
+    let angleVariation = idealAngle * maxAngleVariation;
     return (point) => {
       let isInSpace = isInSpaceFunc(point);
       let isValid = loop.isValid();
-      let allAnglesGreater = loop.allAnglesGreater(angle);
-      let allAnglesLess = loop.allAnglesLess(2 * Math.PI - angle);
+      let allAnglesGreater = loop.allAnglesGreater(idealAngle - angleVariation);
+      let allAnglesLess = loop.allAnglesLess(idealAngle + angleVariation);
       let minDistance = loop.minDistance();
       let hasMinDistance = minDistance > minDistAllowed;
       return isInSpace && isValid &&
@@ -588,32 +705,36 @@ class Loop {
   }
 
   /** Returns a validation check that the polygon has good area */
-  static inSpaceNonFlat(space, loop) {
-    return Loop.hasGoodShape(space, loop , Math.PI/8, space/10);
+  static inSpaceNonFlat(space, loop, maxAngleVariation, minCornerDistance) {
+    return Loop.hasGoodShape(space, loop , maxAngleVariation, minCornerDistance);
   }
 
   /**
    * Return a random dynamic loop component.
    * space: The space x space area (in pixels) where the loop will exist
    * spaceToUse: The space to use for the initial canonical polygon
-   * lines: The default initial number of lines of the loop
-   * initLinesPc: The percentage (0-1) variation from 'lines' in the number of lines
-   * initLinesVar: The initial random variation (in pixels) for the corner points
+   * vectors: The default initial number of vectors of the loop
+   * initVectorsPc: The percentage (0-1) variation from 'vectors' in the number of vectors
+   * initVectorsVar: The initial random variation (in pixels) for the corner points
    *               of the polygon from the perfect symmetric polygon.
-   * dynamicLinesPc: The chance (0-1) for a cornet point to change position as
+   * dynamicVectorsPc: The chance (0-1) for a cornet point to change position as
    *                 time goes by.
-   * dynamicLinesVar: The random variation (in pixels) for the end of lines that
+   * dynamicVectorsVar: The random variation (in pixels) for the end of vectors that
    *                  are modified as time goes by from their previous position
+   * maxAngleVariation: Max angle variation from ideal polygon.
+   * minCornerDistance: Min corner distance for all edges of the polygon
    * historyTrack: The number of last positions of the loop to track in the
    *               history vizualization.
    */
-  static makeDynamic(space, spaceToUse, lines, initLinesPc, initLinesVar, dynamicLinesPc,
-                     dynamicLinesVar, historyTrack) {
+  static makeDynamic(space, spaceToUse, vectors, initVectorsPc, initVectorsVar, dynamicVectorsPc,
+                     dynamicVectorsVar, maxAngleVariation, minCornerDistance, historyTrack) {
     let hspace = space/2;
-    let loop = Loop.makeRandom(hspace, spaceToUse, lines, initLinesPc, initLinesVar);
+    let loop = Loop.makeRandom(hspace, spaceToUse, vectors, initVectorsPc, initVectorsVar,
+                               maxAngleVariation, minCornerDistance);
     let component = new SvgComponent('test', 'loop', space, loop);
     asTimePasses(() => {
-      loop.addRandomness(dynamicLinesPc, dynamicLinesVar, space);
+      loop.addRandomness(dynamicVectorsPc, dynamicVectorsVar, hspace,
+                         maxAngleVariation, minCornerDistance);
       component.track(historyTrack);
     });
     return component;
@@ -659,20 +780,37 @@ class RaceTrack {
     return this.#innerBound.enclosedIn(this.#outerBound);
   }
 
-  static makeRandom(space, spaceToUse, lines, linesVar, posVar, validation) {
+  innerDistance() {
+    let [minDistance] = this.#innerBound.getClosestFromLoop(this.#outerBound);
+    return minDistance;
+  }
+
+  static makeRandom(space, spaceToUse, vectors, vectorsVar, posVar,
+                    maxAngleVariation, minCornerDistance, validation) {
+    let hspace = space/2;
     if (validation == undefined) validation = Loop.isInSpace(space);
-    let outerBound = Loop.makeRandom(space, spaceToUse, lines, linesVar, posVar, validation);
+    let outerBound = Loop.makeRandom(space, spaceToUse, vectors, vectorsVar, posVar,
+                                     maxAngleVariation, minCornerDistance, validation);
     let validEnclosed = RaceTrack.validEnclosed(outerBound);
-    let innerBound = Loop.makeRandom(space, spaceToUse/2, lines, linesVar, posVar, validEnclosed);
+    let innerBound = Loop.makeRandom(space, spaceToUse/2, vectors, vectorsVar, posVar,
+                                     maxAngleVariation, minCornerDistance, validEnclosed);
     return new RaceTrack(outerBound, innerBound);
   }
 
-  /** Add some randomness according to params to linesVar percentage of lines */
-  addRandomness(linesVar, posVar, space, validation) {
+  /** Add some randomness according to params to vectorsVar percentage of vectors */
+  addRandomness(vectorsVar, posVar, space, maxAngleVariation, minCornerDistance, validation) {
     this.reportErrors = false;
-    if(!validation) validation = RaceTrack.validNonFlat(space, this);
-    this.#outerBound.addRandomness(linesVar, posVar, space, validation);
-    this.#innerBound.addRandomness(linesVar, posVar, space, validation);
+    this.#outerBound.reportErrors = false;
+    this.#innerBound.reportErrors = false;
+    if(!validation) validation = RaceTrack.validNonFlat(space, this,
+                                                        maxAngleVariation, minCornerDistance);
+    this.#outerBound.addRandomness(vectorsVar, posVar, space,
+                                   maxAngleVariation, minCornerDistance, validation);
+    this.#innerBound.addRandomness(vectorsVar, posVar, space,
+                                   maxAngleVariation, minCornerDistance, validation);
+    this.reportErrors = true;
+    this.#outerBound.reportErrors = true;
+    this.#innerBound.reportErrors = true;
   }
 
   static validEnclosed(space, outerLoop) {
@@ -680,10 +818,14 @@ class RaceTrack {
     return (point) => inSpace(point) && outerLoop.encloses(point);
   }
 
-  static validNonFlat(space, raceTrack) {
-    let innerOK = Loop.inSpaceNonFlat(space, raceTrack.#outerBound);
-    let outerOK = Loop.inSpaceNonFlat(space, raceTrack.#innerBound);
-    return (point) => innerOK(point) && outerOK(point) && raceTrack.innerEnclosed();
+  static validNonFlat(space, raceTrack, maxAngleVariation, minCornerDistance) {
+    let innerOK = Loop.inSpaceNonFlat(space, raceTrack.#outerBound,
+                                      maxAngleVariation, minCornerDistance);
+    let outerOK = Loop.inSpaceNonFlat(space, raceTrack.#innerBound,
+                                      maxAngleVariation, minCornerDistance);
+    return (point) => innerOK(point) && outerOK(point) &&
+                      raceTrack.innerEnclosed() &&
+                      raceTrack.innerDistance() > minCornerDistance;
   }
 
   getSvg(id) {
@@ -696,24 +838,28 @@ class RaceTrack {
    * Return a random dynamic racetrack component.
    * space: The space x space area (in pixels) where the loop will exist
    * spaceToUse: The space to use for the initial canonical polygon
-   * lines: The default initial number of lines of the loop
-   * initLinesPc: The percentage (0-1) variation from 'lines' in the number of lines
-   * initLinesVar: The initial random variation (in pixels) for the corner points
+   * vectors: The default initial number of vectors of the loop
+   * initVectorsPc: The percentage (0-1) variation from 'vectors' in the number of vectors
+   * initVectorsVar: The initial random variation (in pixels) for the corner points
    *               of the polygon from the perfect symmetric polygon.
-   * dynamicLinesPc: The chance (0-1) for a cornet point to change position as
+   * dynamicVectorsPc: The chance (0-1) for a cornet point to change position as
    *                 time goes by.
-   * dynamicLinesVar: The random variation (in pixels) for the end of lines that
+   * dynamicVectorsVar: The random variation (in pixels) for the end of vectors that
    *                  are modified as time goes by from their previous position
+   * maxAngleVariation: Max angle variation from ideal polygon.
+   * minCornerDistance: Min corner distance for all edges of the polygon
    * historyTrack: The number of last positions of the loop to track in the
    *               history vizualization.
    */
-  static makeDynamic(space, spaceToUse, lines, initLinesPc, initLinesVar, dynamicLinesPc,
-                     dynamicLinesVar, historyTrack) {
+  static makeDynamic(space, spaceToUse, vectors, initVectorsPc, initVectorsVar, dynamicVectorsPc,
+                     dynamicVectorsVar, maxAngleVariation, minCornerDistance, historyTrack) {
     let hspace = space/2;
-    let raceTrack = RaceTrack.makeRandom(space, spaceToUse, lines, initLinesPc, initLinesVar);
+    let raceTrack = RaceTrack.makeRandom(hspace, spaceToUse, vectors, initVectorsPc, initVectorsVar,
+                                         maxAngleVariation, minCornerDistance);
     let component = new SvgComponent('main', 'racetrack', space, raceTrack);
     asTimePasses(() => {
-      raceTrack.addRandomness(dynamicLinesPc, dynamicLinesVar, space);
+      raceTrack.addRandomness(dynamicVectorsPc, dynamicVectorsVar, hspace,
+                              maxAngleVariation, minCornerDistance);
       component.track(historyTrack);
     });
     return component;

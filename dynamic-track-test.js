@@ -44,33 +44,33 @@ let p17 = new Point(5, 1);
   (function testIsEnclosed(){
     console.assert(p5.isEnclosed(p11, p9, p4));
     console.assert(p2.isEnclosed(p11, p10, p4));
-    console.assert(p14.isEnclosed(p15, p16, p17));    
+    console.assert(p14.isEnclosed(p15, p16, p17));
     console.assert(!p8.isEnclosed(p11, p10, p4));
   })();
 
 })();
 
-let l1 = new Line(p1, p2);
-let l2 = new Line(p3, p1);
-let l3 = new Line(p1, p7);
-let l4 = new Line(p5, p4);
-let l5 = new Line(p5, p6);
-let l6 = new Line(p6, p8);
-let l7 = new Line(p4, p8);
-let l8 = new Line(p2, p4);
-let l9 = new Line(p6, p2);
-let l10 = new Line(p3, p5);
-let l11 = new Line(p7, p3);
-let l12 = new Line(p8, p9);
-let l13 = new Line(p9, p10);
-let l14 = new Line(p10, p11);
-let l15 = new Line(p11, p4);
-let l16 = new Line(p11, p2);
-let l17 = new Line(p12, p6);
-let l18 = new Line(p6, p13);
-let l19 = new Line(p5, p1);
+let l1 = new Vector(p1, p2);
+let l2 = new Vector(p3, p1);
+let l3 = new Vector(p1, p7);
+let l4 = new Vector(p5, p4);
+let l5 = new Vector(p5, p6);
+let l6 = new Vector(p6, p8);
+let l7 = new Vector(p4, p8);
+let l8 = new Vector(p2, p4);
+let l9 = new Vector(p6, p2);
+let l10 = new Vector(p3, p5);
+let l11 = new Vector(p7, p3);
+let l12 = new Vector(p8, p9);
+let l13 = new Vector(p9, p10);
+let l14 = new Vector(p10, p11);
+let l15 = new Vector(p11, p4);
+let l16 = new Vector(p11, p2);
+let l17 = new Vector(p12, p6);
+let l18 = new Vector(p6, p13);
+let l19 = new Vector(p5, p1);
 
-(function testLine(){
+(function testVector(){
   (function testGetSvg(){
     console.assert(l1.getSvg("test") ==
       '<line id="test" x1="1" y1="5" x2="2" y2="8"/>',
@@ -96,14 +96,14 @@ let o2 = new Loop([l19, l3, l11, l10]);
 let o2r = new Loop([l10.reverse(), l11.reverse(), l3.reverse(), l19.reverse()]);
 let m1 = new Point(2, 1);
 let m2 = new Point(1, 3);
-let k1 = new Line(m1, m2);
+let k1 = new Vector(m1, m2);
 let m3 = new Point(2, 4);
-let k2 = new Line(m2, m3);
+let k2 = new Vector(m2, m3);
 let m4 = new Point(5, 5);
-let k3 = new Line(m3, m4);
+let k3 = new Vector(m3, m4);
 let m5 = new Point(7, 3);
-let k4 = new Line(m4, m5);
-let k5 = new Line(m5, m1);
+let k4 = new Vector(m4, m5);
+let k5 = new Vector(m5, m1);
 let m6 = new Point(6, 3);
 let m7 = new Point(4, 3);
 let m8 = new Point(3, 2);
@@ -114,27 +114,27 @@ let m11 = new Point(7, 1);
 let m12 = new Point(5, 4);
 let m13 = new Point(1, 4);
 let m14 = new Point(6, 4);
-let k6 = new Line(m2, m7);
-let k7 = new Line(m7, m6);
-let k8 = new Line(m6, m4);
-let k9 = new Line(m4, m9);
-let k10 = new Line(m9, m5);
-let k11 = new Line(m5, m10);
-let k12 = new Line(m10, m1);
+let k6 = new Vector(m2, m7);
+let k7 = new Vector(m7, m6);
+let k8 = new Vector(m6, m4);
+let k9 = new Vector(m4, m9);
+let k10 = new Vector(m9, m5);
+let k11 = new Vector(m5, m10);
+let k12 = new Vector(m10, m1);
 let o4 = new Loop([k1, k6, k7, k8, k9, k10, k11, k12]);
 
 
 (function testLoop(){
   (function testConstructor(){
-    console.assert(o2r.lines[0].equal(l19));
+    console.assert(o2r.vectors[0].equal(l19));
   })();
   (function testIsValid(){
     console.assert(o1.isValid());
-    let end = o1.lines[0].end
-    o1.lines[0].setAngle(1);
+    let end = o1.vectors[0].end
+    o1.vectors[0].setAngle(1);
     o1.reportErrors = false;
     console.assert(!o1.isValid());
-    o1.lines[0].setEnd(end);
+    o1.vectors[0].setEnd(end);
   })();
   (function testEncloses(){
     console.assert(o3.encloses(m6));
@@ -158,7 +158,7 @@ let o4 = new Loop([k1, k6, k7, k8, k9, k10, k11, k12]);
   })();
 })();
 
-(function testLine1(){
+(function testVector1(){
   (function testAngle(){
   })();
   (function testAngle(){
