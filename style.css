@@ -1,0 +1,23 @@
+body {
+  font-family: sans-serif;
+}
+
+svg.loop {
+  stroke: black;
+  stroke-width: 5px;
+  fill: transparent;
+}
+
+svg.racetrack {
+  stroke: black;
+  stroke-width: 5px;
+  fill: transparent;
+}
+
+.outer_racetrack {
+  stroke: DarkSlateGray;
+}
+
+.inner_racetrack {
+  stroke: CadetBlue;
+}
