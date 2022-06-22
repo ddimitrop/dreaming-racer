@@ -268,7 +268,7 @@ class Loop extends Route {
       vector.setEnd(newEnd);
       next.setStart(vector.end);
       let isValid = validation(vector.end);
-      console.log(`isValid ${isValid} enoughVariation ${enoughVariation}`)
+      // console.log(`isValid ${isValid} enoughVariation ${enoughVariation}`)
       if (isValid && enoughVariation) {
          return true;
       } else {
@@ -299,8 +299,8 @@ class Loop extends Route {
       let allAnglesLess = loop.allAnglesLess(idealAngle + angleVariation);
       let minDistance = loop.minDistance();
       let hasMinDistance = minDistance > minDistAllowed;
-      console.log(`isInSpace ${isInSpace} isValid ${isValid} allAnglesGreater ${allAnglesGreater}
-                   allAnglesLess ${allAnglesLess} hasMinDistance ${hasMinDistance}`)
+      //console.log(`isInSpace ${isInSpace} isValid ${isValid} allAnglesGreater ${allAnglesGreater}
+      //             allAnglesLess ${allAnglesLess} hasMinDistance ${hasMinDistance}`)
       return isInSpace && isValid &&
              allAnglesGreater && allAnglesLess && hasMinDistance;
     };
@@ -330,14 +330,13 @@ class Loop extends Route {
    */
   static makeDynamic(space, spaceToUse, vectors, initVectorsPc, initVectorsVar, dynamicVectorsPc,
                      dynamicVectorsVar, maxAngleVariation, minCornerDistance, historyTrack) {
-    let hspace = space/2;
-    let loop = Loop.makeRandom(hspace, spaceToUse, vectors, initVectorsPc, initVectorsVar,
+    let loop = Loop.makeRandom(space, spaceToUse, vectors, initVectorsPc, initVectorsVar,
                                maxAngleVariation, minCornerDistance);
-    let component = new SvgComponent('test', 'loop', space, loop);
+    let component = new SvgComponent('test', space, 'loop', loop, historyTrack);
     asTimePasses(() => {
-      loop.addRandomness(dynamicVectorsPc, dynamicVectorsVar, hspace,
+      loop.addRandomness(dynamicVectorsPc, dynamicVectorsVar, space,
                          maxAngleVariation, minCornerDistance);
-      component.track(historyTrack);
+      component.track();
     });
     return component;
   }

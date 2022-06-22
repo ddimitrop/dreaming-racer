@@ -13,6 +13,14 @@ class RaceTrack {
     }
   }
 
+  get outerBound() {
+    return this.#outerBound;
+  }
+
+  get innerBound() {
+    return this.#innerBound;
+  }
+
   isValid() {
     if (!this.#outerBound.isValid()) {
       if (this.reportErrors)
@@ -77,8 +85,8 @@ class RaceTrack {
       let outerPointOK = outerOK(point);
       let innerEnclosed = raceTrack.innerEnclosed();
       let hasMinDistance = raceTrack.innerDistance() > minCornerDistance;
-      console.log(`innerPointOK ${innerPointOK} outerPointOK ${outerPointOK}
-                  innerEnclosed ${innerEnclosed} hasMinDistance ${hasMinDistance}`)
+      //console.log(`innerPointOK ${innerPointOK} outerPointOK ${outerPointOK}
+      //            innerEnclosed ${innerEnclosed} hasMinDistance ${hasMinDistance}`)
       return innerPointOK && outerPointOK && innerEnclosed && hasMinDistance;
     };
   }
@@ -108,24 +116,22 @@ class RaceTrack {
    */
   static makeDynamic(space, spaceToUse, vectors, initVectorsPc, initVectorsVar, dynamicVectorsPc,
                      dynamicVectorsVar, maxAngleVariation, minCornerDistance, historyTrack) {
-    let hspace = space/2;
     let component = RaceTrack.makeStatic(space, spaceToUse, vectors,
-       initVectorsPc, initVectorsVar, maxAngleVariation, minCornerDistance);
+       initVectorsPc, initVectorsVar, maxAngleVariation, minCornerDistance, historyTrack);
     let raceTrack = component.instance;
     asTimePasses(() => {
-      raceTrack.addRandomness(dynamicVectorsPc, dynamicVectorsVar, hspace,
+      raceTrack.addRandomness(dynamicVectorsPc, dynamicVectorsVar, space,
                               maxAngleVariation, minCornerDistance);
-      component.track(historyTrack);
+      component.track();
     });
     return component;
   }
 
   static makeStatic(space, spaceToUse, vectors, initVectorsPc, initVectorsVar,
-     maxAngleVariation, minCornerDistance) {
-    let hspace = space/2;
-    let raceTrack = RaceTrack.makeRandom(hspace, spaceToUse, vectors, initVectorsPc, initVectorsVar,
+     maxAngleVariation, minCornerDistance, historyTrack) {
+    let raceTrack = RaceTrack.makeRandom(space, spaceToUse, vectors, initVectorsPc, initVectorsVar,
                                          maxAngleVariation, minCornerDistance);
-    let component = new SvgComponent('main', 'racetrack', space, raceTrack);
+    let component = new SvgComponent('main', space, 'racetrack', raceTrack, historyTrack);
     return component;
   }
 }

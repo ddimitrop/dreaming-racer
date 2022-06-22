@@ -1,55 +1,71 @@
 class SvgComponent {
   #svg = null;
-  #className = null;
-  #instance = null;
   #space = null;
-  #history = [];
-  constructor(id, className, space, instance) {
+  #classNames = [];
+  #instances = [];
+  #maxSnapshots = [];
+  #histories = [[]];
+  constructor(id, space, className, instance, maxSnapshots) {
     this.#svg = document.createElementNS("http://www.w3.org/2000/svg",'svg');
     document.body.appendChild(this.#svg);
     this.#svg.id = id;
     this.#svg.setAttribute('class', className);
-    this.#svg.setAttribute('width', `${space}`);
-    this.#svg.setAttribute('height', `${space}`);
-    this.#className = className;
-    this.#instance = instance;
+    this.#svg.setAttribute('width', `${2 * space}`);
+    this.#svg.setAttribute('height', `${2 * space}`);
     this.#space = space;
+
+    this.#classNames.push(className);
+    this.#instances.push(instance);
+    this.#maxSnapshots.push(maxSnapshots || 1)
     this.refresh();
   }
 
   get instance() {
-    return this.#instance;
+    return this.#instances[0];
   }
 
-  getInnerHTML(opacity) {
+  get instances() {
+    return this.#instances;
+  }
+
+  addInstance(className, instance, maxSnapshots) {
+    this.#classNames.push(className);
+    this.#instances.push(instance);
+    this.maxSnapshots.push(maxSnapshots || 1);
+    this.#histories.push([]);
+  }
+
+  getInnerHTML(i, opacity) {
     let space = this.#space;
-    let hspace = space / 2;
-    let svg = this.#instance.getSvg(this.#className);
-    return `<g transform="translate(${hspace}, ${hspace}) scale(1,-1)" style="opacity:${opacity}">
+    let svg = this.#instances[i].getSvg(this.#classNames[i]);
+    return `<g transform="translate(${space}, ${space}) scale(1,-1)" style="opacity:${opacity}">
               ${svg}
             </g>`;
-
   }
 
   refresh() {
-    this.#svg.innerHTML = this.getInnerHTML(1);
+    this.#svg.innerHTML = this.#instances.map((instance, i) => this.getInnerHTML(i, 1)).join('\n');
   }
 
-  track(maxCalls) {
-    let space = this.#space;
-    let hspace = space / 2;
-    if (this.#history.length > maxCalls) {
-      this.#history.shift();
+  trackHTML(i) {
+    let history = this.#histories[i];
+    let maxSnapshots = this.#maxSnapshots[i];
+    if (history.length > maxSnapshots) {
+      history.shift();
     }
-    this.#history.push(this.getInnerHTML(1));
+    history.push(this.getInnerHTML(i, 1));
     let opacity = 1;
-    let opacityDecrease = 1/maxCalls;
+    let opacityDecrease = 1 / maxSnapshots;
     // Decrease opacity as we go to the past.
-    for(let i = this.#history.length - 1; i>=0; i--) {
-      let htmlCall = this.#history[i];
-      this.#history[i] = htmlCall.replace(/"opacity:.*"/, `"opacity: ${opacity}"`);
+    for(let i = history.length - 1; i >= 0; i--) {
+      let htmlCall = history[i];
+      history[i] = htmlCall.replace(/"opacity:.*"/, `"opacity: ${opacity}"`);
       opacity -= opacityDecrease;
     }
-    this.#svg.innerHTML = this.#history.join("\n");
+    return history.join("\n");
+  }
+
+  track() {
+    this.#svg.innerHTML = this.#instances.map((instance, i) => this.trackHTML(i)).join("\n");
   }
 }

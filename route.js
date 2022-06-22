@@ -14,6 +14,10 @@ class Route {
     return this.#vectors;
   }
 
+  get points() {
+    return this.vectors.map(v => v.end);
+  }
+
   setVectors(vectors) {
     this.#vectors = vectors;
     if (!this.isValid()) {
@@ -72,7 +76,8 @@ class Route {
         mi = i;
       }
     }
-    return [minVector, minDistance, mi];
+    let minPoint = minVector.getClosest(point);
+    return [minVector, minDistance, mi, minPoint];
   }
 
   /** Return the min distance between 2 routes and the vectors involved */
