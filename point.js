@@ -96,4 +96,11 @@ class Point {
   round() {
     return new Point(Math.round(this.x), Math.round(this.y));
   }
+
+  getSvg(className, radious) {
+    let x = this.x;
+    let y = this.y;
+    radious = radious || 1;
+    return `<circle class="${className}" cx="${x}" cy="${y}" r="${radious}"/>`;
+  }
 }

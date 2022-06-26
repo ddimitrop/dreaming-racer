@@ -104,13 +104,11 @@ class Route {
 
   getSvgD() {
     let d = "";
+    let p = this.vectors[0].start;
+    d = `M ${p.x} ${p.y} `;
     for (let i=0; i < this.vectors.length; i++) {
-      let [,p,] = this.pointsAt(i);
-      if (i == 0) {
-        d = `M ${p.x} ${p.y} `;
-      } else {
-        d += `L ${p.x} ${p.y} `;
-      }
+      let p = this.vectors[i].end;
+      d += `L ${p.x} ${p.y} `;
     }
     return d;
   }

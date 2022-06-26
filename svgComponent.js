@@ -31,8 +31,9 @@ class SvgComponent {
   addInstance(className, instance, maxSnapshots) {
     this.#classNames.push(className);
     this.#instances.push(instance);
-    this.maxSnapshots.push(maxSnapshots || 1);
+    this.#maxSnapshots.push(maxSnapshots || 1);
     this.#histories.push([]);
+    this.refresh();    
   }
 
   getInnerHTML(i, opacity) {

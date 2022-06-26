@@ -21,3 +21,30 @@ svg.racetrack {
 .inner_racetrack {
   stroke: CadetBlue;
 }
+
+.racer_moving {
+  fill: OrangeRed;
+  stroke: OrangeRed;
+}
+
+.racer_stuck {
+  fill: DarkRed;
+  stroke: DarkRed;
+}
+
+.racer_sample_ok {
+  fill: OrangeRed;
+  stroke: OrangeRed;
+  opacity: 0.8;
+}
+
+.racer_sample_stuck {
+  fill: DarkRed;
+  stroke: DarkRed;
+  opacity: 0.8;
+}
+
+.racer_history {
+  stroke: OrangeRed;
+  stroke-width: 2px;
+}

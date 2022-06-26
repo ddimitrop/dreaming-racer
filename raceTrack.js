@@ -49,6 +49,11 @@ class RaceTrack {
     return minDistance;
   }
 
+  isInTrack(point) {
+    return this.outerBound.encloses(point) &&
+           !this.innerBound.encloses(point);
+  }
+
   static makeRandom(space, spaceToUse, vectors, vectorsVar, posVar,
                     maxAngleVariation, minCornerDistance, validation) {
     let outerBound = Loop.randomIdeal(vectors, vectorsVar, spaceToUse);

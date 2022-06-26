@@ -1,0 +1,61 @@
+<!doctype html>
+<html>
+<head>
+  <title>A non autonomous racer</title>
+  <meta name="author" content="Dimitrios Dimitropoulos">
+  <meta name="created" content="2022-06-22">
+
+  <!-- Google Tag Manager -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-PHXKQKW');</script>
+  <!-- End Google Tag Manager -->
+
+  <link rel="stylesheet" type="text/css" href="style.css"></link>
+
+  <script src="util.js"></script>
+  <script src="svgComponent.js"></script>
+  <script src="point.js"></script>
+  <script src="vector.js"></script>
+  <script src="route.js"></script>
+  <script src="loop.js"></script>
+  <script src="raceTrack.js"></script>
+  <script src="racer.js"></script>
+  <script src="init.js"></script>
+
+  <script src="point-test.js"></script>
+  <script src="vector-test.js"></script>
+  <script src="loop-test.js"></script>
+
+</head>
+<body>
+  <h2>A non autonomous racer</h2>
+
+  <p>
+    A non autonomous racer in a static racetrack that can be
+    controlled like a computer game. <br>
+    Implemented in the context of
+    <a href="tinyurl.com/yc2bp4v8">tinyurl.com/yc2bp4v8</a><br><br>
+    Use left-arrow/right-arrow or k/l keys to control it like a playing a game.<br>
+    Try avoiding bumping into walls but if you do and get stuck use the keys to
+    put it back in track.
+  </p>
+  <p>
+    For more details see
+    <a href="index.html">here</a>
+  </p>
+  <p>
+    Author: Dimitrios Dimitropoulos - Created: 22 Jun 2022
+  </p>
+  <p>
+    Show samples:
+    <input type="checkbox" onclick="window.racer.showSamples = !window.racer.showSamples">
+    Show history:
+    <input type="checkbox" onclick="window.racer.showHistory = !window.racer.showHistory">
+  </p>
+
+  <script> onReady(ininNonAutonomousRacer); </script>
+</body>
+</html>

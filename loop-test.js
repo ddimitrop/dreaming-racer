@@ -60,7 +60,7 @@ let o4 = new Loop([k1, k6, k7, k8, k9, k10, k11, k12]);
   (function testGetSvg(){
     console.assert(
       o1.getSvg('p1') ==
-      '<path class="p1" d="M 8 10 L 3 -1 L -1 -5 L -6 -4 L -5 6 z"/>',
-      `SVG ${o1.getSvg()}`);
+      '<path class="p1" d="M -5 6 L 8 10 L 3 -1 L -1 -5 L -6 -4 L -5 6 z"/>',
+      `SVG ${o1.getSvg('p1')}`);
   })();
 })();

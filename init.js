@@ -54,3 +54,20 @@ function initStaticRaceTrack() {
     0.2 /* maxAngleVariation */,
     space / 5 /* minCornerDistance */);
 }
+
+function ininNonAutonomousRacer() {
+  let space = 300;
+  let component = Racer.makeStatic(
+    space /* space */,
+    space * 0.8 /* spaceToUse */,
+    10 /* vectors */,
+    0.3 /* initVectorsPc */,
+    space / 5 /* initVectorsVar */,
+    0.2 /* maxAngleVariation */,
+    space / 5 /* minCornerDistance */,
+    1 /* historySize */,
+    space / 15  /* speed */,
+    Math.PI / 10 /* angleTurn */,
+    true /* drivingSupport */);
+  window.racer = component.instances[1];
+}
