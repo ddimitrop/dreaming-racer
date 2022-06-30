@@ -1,8 +1,3 @@
-/**
- * A track is an area of 2D space defined by an inner loop and an outer loop.
- * A dynamic track is a track where the loop shapes can change.
- */
-
 /** A point in 2D space */
 class Point {
   // It is an "immutable point" (can't change its x and y after creating it it).
