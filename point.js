@@ -68,6 +68,16 @@ class Point {
     return (this.angle(next) - this.angle(prev) + 2 * Math.PI) % (2 * Math.PI);
   }
 
+  /** if this point is enclosed between then lines defined by t-tp and t-tn */
+  isBetween(t, tp, tn) {
+    let ap = t.angle(tp, true);
+    let an = t.angle(tn, true);
+    let at = t.angle(this, true);
+    let apn = Point.nonReflex(ap - an);
+    let apt = Point.nonReflex(ap - at);
+    if (Math.abs(apn) < Math.abs(apt)) return false;
+  }
+
   /** if this point is enclosed in the triangle defined by t1, t2 ans t3 */
   isEnclosed(t1, t2, t3) {
     // For each point find the angles with the other 2.
@@ -77,12 +87,7 @@ class Point {
       let t = triangle[i];
       let tp = triangle[i == 0 ? 2 : i-1];
       let tn = triangle[i == 2 ? 0 : i+1];
-      let ap = t.angle(tp, true);
-      let an = t.angle(tn, true);
-      let at = t.angle(this, true);
-      let apn = Point.nonReflex(ap - an);
-      let apt = Point.nonReflex(ap - at);
-      if (Math.abs(apn) < Math.abs(apt)) return false;
+      if (!this.isBetween(t, tp, tn)) return false;
     }
     return true;
   }
