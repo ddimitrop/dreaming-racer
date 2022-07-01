@@ -22,6 +22,7 @@ class Racer {
   positionSize = 5; // The size of the position circle;
   sampleSize = 1; // The size of the position circle;
   #stuckPeriods = 0;
+  #autonomousRetries = 0;
   #speed = null;
   #angleTurn = null;
   #turningAngle = null;
@@ -57,13 +58,27 @@ class Racer {
     return this.#currentVector.end;
   }
 
+  get angle () {
+    return this.#turningAngle == null ?
+           this.#currentVector.angle :
+           this.#turningAngle;
+  }
+
+  setAngle (angle) {
+    return this.#turningAngle = angle;
+  }
+
+  resetAngle () {
+    return this.#turningAngle = null;
+  }
+
   get nextPosition() {
     let position = this.position;
     if(!this.isInTrack()) {
       position = this.closestPointIn();
     }
     let nextVector = new Vector(position, position);
-    let nextAngle = this.#turningAngle || this.#currentVector.angle;
+    let nextAngle = this.angle;
     nextVector.setAngle(nextAngle);
     nextVector.setDistance(this.#speed);
     return nextVector.end;
@@ -83,21 +98,18 @@ class Racer {
          this.getInTrack();
          this.addSample(this.position, false);
          this.#stuckPeriods = 0;
+         this.#autonomousRetries = 0;
        } else {
          let data = this.closestVectorIn();
+         this.#autonomousRetries++;
          let turningAngle =
-            this.autonousDrive(this.#currentVector, data.vector, data.outer);
-         if(turningAngle) {
-           this.#turningAngle = turningAngle;
-           this.doTurn();
-         }
+            this.autonomousDrive(this.#currentVector, data.outer,
+                                 this.#autonomousRetries);
+         this.turnToAngle(turningAngle);
        }
     } else {
       let turningAngle = this.knowsHasToTurn();
-      if(turningAngle) {
-        this.#turningAngle = turningAngle;
-        this.doTurn();
-      }
+      this.turnToAngle(turningAngle);
       this.#currentVector.setDistance(this.#currentVector.distance + this.#speed);
       this.addSample(this.position, false);
     }
@@ -139,17 +151,21 @@ class Racer {
   }
 
   turn(left) {
-    if (this.#turningAngle == null) {
-      this.#turningAngle = this.#currentVector.angle;
+    let changeAngle = (left ? this.#angleTurn : -this.#angleTurn);
+    this.turnToAngle(this.angle + changeAngle);
+  }
+
+  turnToAngle(turningAngle) {
+    if(turningAngle !== null) {
+      this.setAngle(turningAngle);
+      this.doTurn();
     }
-    this.#turningAngle += (left ? this.#angleTurn : -this.#angleTurn);
-    this.doTurn();
   }
 
   doTurn() {
     if (this.isInTrack() || this.willBeInTrack()) {
       this.setCurrentVector(this.position, this.#turningAngle);
-      this.#turningAngle = null;
+      this.resetAngle();
     }
   }
 
@@ -178,13 +194,13 @@ class Racer {
 
   /** A racer with autonomous driving would return the angle
    * that the racer need to turn to get unstuck.
-   * - racerVector: the vector of the racer to find its angle
    * - wallVector: the vector of the wall that the racer bumped in
    * - isOuter: it its an inner wall.
+   * - autonomousRetries: How many tries where done to unstuck
    * Because we want the racer to go clockwise we turn right if for
    * inner and left for outer walls.
    */
-  autonousDrive(racerVector, wallVector, isOuter) {
+  autonomousDrive(wallVector, isOuter, autonomousRetries) {
     // This racer doesn't support autonomous driving.
     return null;
   }
