@@ -76,6 +76,7 @@ class Point {
     let apn = Point.nonReflex(ap - an);
     let apt = Point.nonReflex(ap - at);
     if (Math.abs(apn) < Math.abs(apt)) return false;
+    return true;
   }
 
   /** if this point is enclosed in the triangle defined by t1, t2 ans t3 */
