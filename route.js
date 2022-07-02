@@ -81,7 +81,7 @@ class Route {
   }
 
   /** Return the min distance between 2 routes and the vectors involved */
-  getClosestFromLoop(otherLoop) {
+  getClosestFrom(otherRoute) {
     let minDistance = Infinity;
     let minVector = null;
     let mi = null;
@@ -90,7 +90,7 @@ class Route {
     for (let i = 0; i < this.vectors.length; i++) {
       let vector = this.vectors[i];
       let point = vector.end;
-      let [oVector, oDistance, oi] = otherLoop.getClosest(point);
+      let [oVector, oDistance, oi] = otherRoute.getClosest(point);
       if (oDistance < minDistance) {
         minDistance = oDistance;
         minVector = vector;

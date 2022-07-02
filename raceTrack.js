@@ -45,7 +45,7 @@ class RaceTrack {
   }
 
   innerDistance() {
-    let [minDistance] = this.#innerBound.getClosestFromLoop(this.#outerBound);
+    let [minDistance] = this.#innerBound.getClosestFrom(this.#outerBound);
     return minDistance;
   }
 
