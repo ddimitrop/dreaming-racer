@@ -71,18 +71,6 @@ class Loop extends Route {
     return (angle >= 0 && angle <= Math.PI);
   }
 
-  /** Returns if the polygon is convex */
-  isConvex() {
-    for (let i=0; i < this.vectors.length; i++) {
-      if (!this.isNonReflex(i)) {
-        let [prev, point, next] = this.pointsAt(i);
-        let angle = point.angleBetween(prev, next);
-        return false;
-      }
-    }
-    return true;
-  }
-
   /** Returns if the polygon has all angles > angle */
   allAnglesGreater(angle) {
     for (let i=0; i < this.vectors.length; i++) {
