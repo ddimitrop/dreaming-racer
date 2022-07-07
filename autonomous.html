@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+<head>
+  <title>A non autonomous racer</title>
+  <meta name="author" content="Leandros Dimitropoulos Kapsogeorgos">
+  <meta name="created" content="2022-06-29">
+
+  <!-- Google Tag Manager -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-PHXKQKW');</script>
+  <!-- End Google Tag Manager -->
+
+  <link rel="stylesheet" type="text/css" href="style.css"></link>
+
+  <script src="util.js"></script>
+  <script src="svgComponent.js"></script>
+  <script src="point.js"></script>
+  <script src="vector.js"></script>
+  <script src="route.js"></script>
+  <script src="loop.js"></script>
+  <script src="raceTrack.js"></script>
+  <script src="racer.js"></script>
+  <script src="autonomousRacer.js"></script>
+  <script src="init.js"></script>
+
+  <script src="point-test.js"></script>
+  <script src="vector-test.js"></script>
+  <script src="loop-test.js"></script>
+
+</head>
+<body>
+  <h2>An autonomous racer</h2>
+
+  <p>
+    A autonomous racer in a static racetrack that can be
+    will course correct after bumping into a wall. <br>
+    Implemented in the context of
+    <a href="https://tinyurl.com/yc2bp4v8">tinyurl.com/yc2bp4v8</a><br><br>
+  </p>
+  <p>
+    For more details see
+    <a href="index.html">here</a>
+  </p>
+  <p>
+    Author: Leandros Dimitropoulos Kapsogeorgos - Created: 29 Jun 2022
+  </p>
+  <p>
+    Show samples:
+    <input type="checkbox" onclick="window.racer.showSamples = !window.racer.showSamples">
+    Show history:
+    <input type="checkbox" onclick="window.racer.showHistory = !window.racer.showHistory">
+  </p>
+
+  <script> onReady(ininAutonomousRacer); </script>
+</body>
+</html>
