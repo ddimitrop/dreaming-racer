@@ -1,3 +1,5 @@
+/* Boiler plate helper functions with all the params to keep HTML clean */
+
 function initDynamicLoop() {
   let space = 300;
   let component = Loop.makeDynamic(
@@ -69,5 +71,21 @@ function ininNonAutonomousRacer() {
     space / 15  /* speed */,
     Math.PI / 10 /* angleTurn */,
     true /* drivingSupport */);
+  window.racer = component.instances[1];
+}
+
+function ininAutonomousRacer() {
+  let space = 300;
+  let component = AutonomousRacer.makeStatic(
+    space /* space */,
+    space * 0.8 /* spaceToUse */,
+    10 /* vectors */,
+    0.3 /* initVectorsPc */,
+    space / 5 /* initVectorsVar */,
+    0.2 /* maxAngleVariation */,
+    space / 5 /* minCornerDistance */,
+    1 /* historySize */,
+    space / 15  /* speed */,
+    Math.PI / 10 /* angleTurn */);
   window.racer = component.instances[1];
 }
