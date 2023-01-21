@@ -54,6 +54,18 @@ class RaceTrack {
            !this.innerBound.encloses(point);
   }
 
+  closestVectorTo(position) {
+    let outer = true;
+    let [vector, distance, index, point] = this.outerBound.getClosest(position);
+    let [ivector, idistance, iindex, ipoint] = this.innerBound.getClosest(position);
+    if (distance > idistance) {
+      outer = false;
+      [vector, distance, index, point] = [ivector, idistance, iindex, ipoint];
+    }
+    return {vector, distance, index, point, outer}
+  }
+
+
   static makeRandom(space, spaceToUse, vectors, vectorsVar, posVar,
                     maxAngleVariation, minCornerDistance, validation) {
     let outerBound = Loop.randomIdeal(vectors, vectorsVar, spaceToUse);

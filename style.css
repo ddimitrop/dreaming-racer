@@ -48,3 +48,14 @@ svg.racetrack {
   stroke: OrangeRed;
   stroke-width: 2px;
 }
+
+.racer_label {
+  stroke-width: 0px;
+  fill: black;
+}
+
+.racer_heatMap {
+  stroke-width: 1px;
+  stroke: LightGray;
+  opacity: 0.4;  
+}

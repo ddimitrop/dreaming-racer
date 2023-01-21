@@ -77,9 +77,12 @@ class Racer {
     if(!this.isInTrack()) {
       position = this.closestPointIn();
     }
+    return this.getNextWithAngle(position, this.angle);
+  }
+
+  getNextWithAngle(position, angle) {
     let nextVector = new Vector(position, position);
-    let nextAngle = this.angle;
-    nextVector.setAngle(nextAngle);
+    nextVector.setAngle(angle);
     nextVector.setDistance(this.#speed);
     return nextVector.end;
   }
@@ -115,23 +118,24 @@ class Racer {
     }
   }
 
+  isPointInTrack(position) {
+    return this.#raceTrack.isInTrack(position)
+  }
+
   isInTrack() {
-    return this.#raceTrack.isInTrack(this.position);
+    return this.isPointInTrack(this.position);
   }
 
   willBeInTrack() {
-    return this.#raceTrack.isInTrack(this.nextPosition);
+    return this.isPointInTrack(this.nextPosition);
   }
 
   closestVectorIn() {
-    let outer = true;
-    let [vector, distance, index, point] = this.#raceTrack.outerBound.getClosest(this.position);
-    let [ivector, idistance, iindex, ipoint] = this.#raceTrack.innerBound.getClosest(this.position);
-    if (distance > idistance) {
-      outer = false;
-      [vector, distance, index, point] = [ivector, idistance, iindex, ipoint];
-    }
-    return {vector, distance, index, point, outer}
+    return this.#raceTrack.closestVectorTo(this.position);
+  }
+
+  distanceToWall(position) {
+    return this.#raceTrack.closestVectorTo(position).distance;
   }
 
   closestPointIn() {

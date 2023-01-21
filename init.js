@@ -89,3 +89,19 @@ function ininAutonomousRacer() {
     Math.PI / 10 /* angleTurn */);
   window.racer = component.instances[1];
 }
+
+function initSelfDrivingRacer() {
+  let space = 300;
+  let component = SelfDrivingRacer.makeStatic(
+    space /* space */,
+    space * 0.8 /* spaceToUse */,
+    10 /* vectors */,
+    0.3 /* initVectorsPc */,
+    space / 5 /* initVectorsVar */,
+    0.2 /* maxAngleVariation */,
+    space / 5 /* minCornerDistance */,
+    1 /* historySize */,
+    space / 15  /* speed */,
+    Math.PI / 10 /* angleTurn */);
+  window.racer = component.instances[1];
+}
