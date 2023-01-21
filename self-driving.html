@@ -1,0 +1,80 @@
+<!doctype html>
+<html>
+<head>
+  <title>A self driving racer</title>
+  <meta name="author" content="Dimitris Dimitropoulos">
+  <meta name="created" content="2023-01-15">
+
+  <!-- Google Tag Manager -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-PHXKQKW');</script>
+  <!-- End Google Tag Manager -->
+
+  <link rel="stylesheet" type="text/css" href="style.css"></link>
+
+  <script src="util.js"></script>
+  <script src="svgComponent.js"></script>
+  <script src="point.js"></script>
+  <script src="vector.js"></script>
+  <script src="route.js"></script>
+  <script src="loop.js"></script>
+  <script src="raceTrack.js"></script>
+  <script src="racer.js"></script>
+  <script src="autonomousRacer.js"></script>
+
+  <script src="selfDriving.js"></script>
+  <script src="init.js"></script>
+
+  <script src="point-test.js"></script>
+  <script src="vector-test.js"></script>
+  <script src="loop-test.js"></script>
+
+
+</head>
+<body>
+  <h2>An autonomous racer that self drives</h2>
+
+  <p>
+    A autonomous racer that is aware of the track, estimates the propablity
+    to crash at every point and self drives to avoid the walls.<br>
+    Implemented in the context of
+    <a href="https://tinyurl.com/yc2bp4v8">tinyurl.com/yc2bp4v8</a><br><br>
+  </p>
+  <p>
+    For more details see
+    <a href="index.html">here</a>
+  </p>
+  <p>
+    Author: Dimitropoulos Dimitris - Created: 15 Jan 2023
+  </p>
+  <p>
+    Show samples:
+    <input type="checkbox" onclick="window.racer.showSamples = !window.racer.showSamples">
+    Show history:
+    <input type="checkbox" onclick="window.racer.showHistory = !window.racer.showHistory">
+  </p>
+  <p>
+    Show heat map:
+    <input type="checkbox" onclick="window.racer.showHeatMap = !window.racer.showHeatMap">
+    Square size:
+    <input id="squareSize" size="5" onchange="updateSquareSize()">
+  </p>
+
+  <script>
+    const squareSizeEl = document.getElementById('squareSize');
+    onReady(() => {
+      initSelfDrivingRacer();
+      squareSizeEl.value = window.racer.squareSize;
+    })
+    function updateSquareSize() {
+      const squareSize = parseInt(squareSizeEl.value);
+      if (!isNaN(squareSize)) {
+        window.racer.squareSize = squareSize
+      }
+    }
+  </script>
+</body>
+</html>
