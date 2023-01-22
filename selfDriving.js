@@ -1,19 +1,17 @@
 
 class SelfDrivingRacer extends AutonomousRacer {
-    //minAngleOffset = Math.PI * 0.1;
-    // maxRandomExtraOffset = Math.PI * 0.3;
     showHeatMap = false;
     squareSize = 10;
-    predictType = 'raw';
     heatMap;
     maxDistance;
     angleOffset = Math.PI * 0.1;
     angleIterations = 3;
+    maxRisk = 0.3;
 
     constructor(raceTrack, speed, angleTurn, space) {
       super(raceTrack, speed, angleTurn);
       this.space = space;
-      this.maxDistance = this.space * 0.2;
+      this.maxDistance = this.space * 0.3;
     }
 
     getSvg(className) {
@@ -21,17 +19,6 @@ class SelfDrivingRacer extends AutonomousRacer {
       let lSvg = '<g transform="scale(1, 1) translate(-300, -300)")">';
       const minDistance = Math.round(this.closestVectorIn().distance);
       let label =  `Minimum distance ${minDistance}`;
-      /*
-      if (this.learningMachine.isCollecting()) {
-        let finalCount = this.learningMachine.finalCount;
-        let samplesToUse = this.learningMachine.samplesToUse;
-        label = `Collecting samples ... ${finalCount}/${samplesToUse}`
-      } else {
-        let isStuck = this.learningMachine.predictHit(this.nextPosition, this.predictType);
-        let isStuckChance = Math.round(100 * isStuck);
-        label = `Collision Chance: ${isStuckChance}%`
-      }
-      */
       let space = this.space;
       lSvg += `<text transform="scale(1, -1)" x="0" y="-${2*space-20}"
                     class="${className}_label">
@@ -39,7 +26,6 @@ class SelfDrivingRacer extends AutonomousRacer {
               </text>`;
      if (this.showHeatMap) {
         let hSvg = "";
-        //const heatMap = this.learningMachine.getHeatMap(this.predictType, this.squareSize);
         const heatMap = this.getHeatMap();
         let squareSize = this.squareSize;
         for (let i = 0; i < heatMap.length; i++) {
@@ -64,23 +50,27 @@ class SelfDrivingRacer extends AutonomousRacer {
       return svg + lSvg;
     }
 
+    /** Override this to assess risk to crash based on learning */
+    riskToCrash(position) {
+      const distanceToWall = this.distanceToWall(position);
+      if (distanceToWall > this.maxDistance) return 0;
+      return (this.maxDistance - distanceToWall)/ this.maxDistance;
+    }
+
     knowsHasToTurn() {
-      if (this.closestVectorIn().distance < this.maxDistance) {
+      if (this.riskToCrash(this.position) > this.maxRisk) {
         let bestAngle = null;
-        let bestDist = null;
+        let bestRisk = null;
         for (let i = 1 - this.angleIterations; i < this.angleIterations; i++) {
           let angle = this.angle + i * this.angleOffset;
           let position = this.getNextWithAngle(this.position, angle);
           if (!this.isPointInTrack(position)) continue;
-          const dist = this.distanceToWall(position);
-          if (!bestDist || bestDist < dist) {
-             bestDist = dist;
+          const risk = this.riskToCrash(position);
+          if (!bestRisk || bestRisk > risk) {
+             bestRisk = risk;
              bestAngle = angle;
           }
         }
-        // Make sure you return a nonReflex angle
-        //  bestAngle = Point.nonReflex(bestAngle)
-
         return bestAngle;
       }
       return null;
@@ -92,28 +82,23 @@ class SelfDrivingRacer extends AutonomousRacer {
       if (this.heatmap && this.heatmap.length === 2 * numSquares) {
         return this.heatmap;
       }
-      let maxDistance = 0;
+
       this.heatmap = [];
+
       for (let i = 0; i < 2 * numSquares; i++) {
         this.heatmap.push([])
         for (let j = 0; j < 2 * numSquares; j++) {
-          const corner = new Point(
+          const position = new Point(
             (i - numSquares) * this.squareSize,
             (j - numSquares) * this.squareSize);
-          const distance = this.distanceToWall(corner);
-          this.heatmap[i].push(distance);
-          maxDistance = Math.max(maxDistance, distance);
+          if (!this.isPointInTrack(position)) {
+            this.heatmap[i].push(1);
+            continue;
+          };
+          const risk = this.riskToCrash(position);
+          this.heatmap[i].push(risk);
         }
       }
-      for (let i = 0; i < 2 * numSquares; i++) {
-        for (let j = 0; j < 2 * numSquares; j++) {
-          const distance = this.heatmap[i][j];
-          let risk = (maxDistance - distance)/maxDistance;
-          if (risk < 0.85) risk = risk * 0.8;
-          this.heatmap[i][j] = risk;
-        }
-      }
-
       return this.heatmap;
     }
 
