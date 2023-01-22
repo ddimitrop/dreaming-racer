@@ -6,19 +6,20 @@ class SelfDrivingRacer extends AutonomousRacer {
     maxDistance;
     angleOffset = Math.PI * 0.1;
     angleIterations = 3;
-    maxRisk = 0.3;
+    maxRisk;
 
-    constructor(raceTrack, speed, angleTurn, space) {
+    constructor(raceTrack, speed, angleTurn, space, maxRisk = 0.4) {
       super(raceTrack, speed, angleTurn);
       this.space = space;
       this.maxDistance = this.space * 0.3;
+      this.maxRisk = maxRisk;
     }
 
     getSvg(className) {
       let svg = super.getSvg(className);
       let lSvg = '<g transform="scale(1, 1) translate(-300, -300)")">';
-      const minDistance = Math.round(this.closestVectorIn().distance);
-      let label =  `Minimum distance ${minDistance}`;
+      const risk = Math.round(this.riskToCrash(this.position) * 100) / 100;
+      let label =  `Risk to crash ${risk}`;
       let space = this.space;
       lSvg += `<text transform="scale(1, -1)" x="0" y="-${2*space-20}"
                     class="${className}_label">
