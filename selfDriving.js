@@ -15,11 +15,15 @@ class SelfDrivingRacer extends AutonomousRacer {
       this.maxRisk = maxRisk;
     }
 
+    getLabel() {
+      const risk = Math.round(this.riskToCrash(this.position) * 100) / 100;
+      return  `Risk to crash ${risk}`;
+    }
+
     getSvg(className) {
       let svg = super.getSvg(className);
       let lSvg = '<g transform="scale(1, 1) translate(-300, -300)")">';
-      const risk = Math.round(this.riskToCrash(this.position) * 100) / 100;
-      let label =  `Risk to crash ${risk}`;
+      let label =  this.getLabel();
       let space = this.space;
       lSvg += `<text transform="scale(1, -1)" x="0" y="-${2*space-20}"
                     class="${className}_label">
@@ -59,7 +63,9 @@ class SelfDrivingRacer extends AutonomousRacer {
     }
 
     knowsHasToTurn() {
-      if (this.riskToCrash(this.position) > this.maxRisk) {
+      const currentRisk = this.riskToCrash(this.position);
+      if (currentRisk == null) return null;
+      if (currentRisk > this.maxRisk) {
         let bestAngle = null;
         let bestRisk = null;
         for (let i = 1 - this.angleIterations; i < this.angleIterations; i++) {

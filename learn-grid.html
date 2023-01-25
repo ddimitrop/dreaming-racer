@@ -26,6 +26,7 @@
   <script src="autonomousRacer.js"></script>
 
   <script src="selfDriving.js"></script>
+  <script src="learnGridRacer.js"></script>
   <script src="init.js"></script>
 
   <script src="point-test.js"></script>
@@ -35,11 +36,13 @@
 
 </head>
 <body>
-  <h2>An autonomous racer that self drives</h2>
+  <h2>An learning racer using smoothed frequencies to calculate risk</h2>
 
   <p>
-    A autonomous racer that is aware of the track, estimates the propablity
-    to crash at every point and self drives to avoid the walls.<br>
+    A racer that is not aware of the track but keeps memory of crashing
+    frequencies on a grid that is smoothed out, and calculates them to estimate
+    the risk to crash at each position.
+    By doing that it learns how to self drive avoiding walls.<br>
     Implemented in the context of
     <a href="https://tinyurl.com/yc2bp4v8">tinyurl.com/yc2bp4v8</a><br><br>
   </p>
@@ -68,7 +71,7 @@
   <script>
     const squareSizeEl = document.getElementById('squareSize');
     onReady(() => {
-      initSelfDrivingRacer();
+      initLearGridRacer();
       squareSizeEl.value = window.racer.squareSize;
     })
     function updateSquareSize() {
